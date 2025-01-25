@@ -1,0 +1,45 @@
+name: Sync Fork
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Sync Fork with Upstream
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      # Set up git
+      - name: Set Up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Add upstream repository and fetch
+      - name: Add Upstream
+        run: |
+          git remote add upstream https://github.com/LandSandBoat/server.git
+          git fetch upstream base
+
+      # Sync with upstream branch
+      - name: Sync with Upstream
+        run: |
+          git rebase upstream/base
+
+      # Push changes to fork
+      - name: Push Changes to Fork
+        run: |
+          git push origin base --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
